@@ -138,7 +138,7 @@ int chequear(int actualx,int actualy,int ti,int rotation,char tets[17],unsigned 
 }
 
 void lineallena(int actualy,unsigned char pos[ancho*alto], int nivel, int puntaje){
-	int contador=0;
+	
 	for(int y=0; y<4; y++){
 		if((actualy+y) < (alto-1)){
 			int bandera=1;
@@ -161,32 +161,38 @@ void lineallena(int actualy,unsigned char pos[ancho*alto], int nivel, int puntaj
 	}
 }
 
-void tetromino_azar(int grupo[7]){ //Va a generar 7 tetrominos al azar
+int tetromino_azar(int grupo[7], int contador){ //Va a generar 7 tetrominos al azar
+	int aux=grupo[0];
 	for (int i=0; i<7; i++){
 		grupo[i]=rand()%7;
+	}
+	//Imprime el grupo aleatorio
+	//[0] siempre va a ser la siguiente, contador
+	int vuelta=grupo[0];
+	if(contador==0){
+		return vuelta;
+	} else {
+		return aux;
 	}
 }
 
 int guardar_tetromino(int grupo[7]){ //Retorna el primer tetromino al azar y desplaza el arreglo hacia la izquierda //Sirve tambien para ayudar a la funcion proxima_pieza
      //Si no está, se crea solo un tetromino
-	int tt=grupo[0];
+	int aux=grupo[0];
 	for(int i=0; i<6; i++){
 		grupo[i]=grupo[i+1];
 	}
-	return tt;
+	return aux;
 }
 
-void proxima_pieza(int grupo[7]){ //Funcion que muestra la pieza que pieza viene despues
+void proxima_pieza(int aux){ //Funcion que muestra la pieza que pieza viene despues
 
 	for(int i=0; i<4; i++){
 		for(int j=0; j<4; j++){
-				printf("%c", tetrominos[grupo[1]][i][j]);
+				printf("%c", tetrominos[aux][i][j]);
 				}
 			printf("\n");
 		}
-	int contador=0;
-	int b=grupo[0+contador];
-	contador++;
 }
 
 
@@ -283,6 +289,8 @@ int main() {
 
 			case 1: // ---------LUGAR: Todo lo del juego y su logica ------------
 			do{
+				int contador=0;
+				int aux;
 				srand(time(0));
 				system("cls");
 				puntaje=0;
@@ -297,14 +305,14 @@ int main() {
 					int actualy=0;
 					int rotacion=1;
 					/*Aqui se crean las piezas al azar*/
-					tetromino_azar(grupo);
+					aux=tetromino_azar(grupo, contador);
 					int ti=guardar_tetromino(grupo);//MMMMMMM
 					printf("\nSIGUIENTE PIEZA: ");
 					printf("\n");
-					proxima_pieza(grupo);
+					proxima_pieza(aux);
 					colorrojo();
 					printf("\nPUNTOS: %d",puntaje);
-					Sleep(5000);
+					Sleep(3000);
 					printf("\n");
 					colorbase();
 					//aqui no va puntaje+10
