@@ -4,11 +4,13 @@
 #include <windows.h>
 #include <conio.h>
 
+//Definimos las variables globales
 #define ancho 17
 #define alto 12
 #define velocidad 900
 
-char tetrominos[7][4][4] ={ //Se declaran los tetrominos
+char tetrominos[7][4][4] ={ //Se declaran los 7 tetrominos
+//En vez de crear 7 matrices de 2d se crea una de 3d
 	{
 		"..x.",//I
 		"..x.",
@@ -75,20 +77,32 @@ int rotar(int x,int y,int r){ /*Funcion que rota la pieza*/
 	return i;
 }
 
-void crear_pieza(int actualx,int actualy,int ti,int r,int pi[17],char tets[17]){
-	int s=0;
+void crear_pieza(int actualx,int actualy,int ti,int r,int pi[17],char tets[17]){/*Funcion que crea la pieza*/
+	int contador=0;
 	for (int y=0; y<4; y++){
 		for(int x=0; x<4; x++){
 			int i=(actualy + y)*ancho +(actualx+x);
-			int j=rotar(x,y,r);
-			pi[s]=i;
-			s++;
-			tets[j]=tetrominos[ti][y][x];
+			int j=rotar(x,y,r); //Que la pieza aparezca rotada en su posicion original
+			pi[contador]=i;//Guarda la posicion de la pieza en el tablero
+			contador++;
+			tets[j]=tetrominos[ti][y][x];//Asocia a tets un tetromino al azar ya que ti indica un numero al azar de tetrominos
 		}
 	}
 }
 
-void copiar_pieza(char tets[17],int pi[17],unsigned char pos[ancho*alto]){//ES MATRIZ POS???????????????
+int chequear(int actualx,int actualy,int ti,int rotation,char tets[17],unsigned char pos[ancho*alto], int pi[17], int puntaje){
+	
+	crear_pieza(actualx,actualy,ti,rotation, pi, tets);
+	for(int i=0; i<16; i++){
+		if(tets[i]!='.' && pos[pi[i]]!='.'){
+			return 0;
+		}
+	}
+	return 1;
+}
+
+void copiar_pieza(char tets[17],int pi[17],unsigned char pos[ancho*alto]){
+	//Funcion que copia el tetromino al azar en el mapa pos
 	for(int j=0; j<16; j++){
 		if(tets[j]=='x'){
 			pos[pi[j]]=tets[j];
@@ -96,18 +110,18 @@ void copiar_pieza(char tets[17],int pi[17],unsigned char pos[ancho*alto]){//ES M
 	}
 }
 
-void borde(unsigned char pos[ancho * alto]) { /*Funcion que crea el borde*/
+void borde(unsigned char pos[ancho * alto]) { /*Funcion que crea el borde del tablero pos*/
 
 	for (int y = 0; y < alto; y++) {
 		for (int x=0; x<ancho; x++)	{
 			if ( x == 0 || x == ancho - 2 || y == alto - 1) { //2 para las paredes, 1 para el piso
 				pos[y * ancho + x] =186; //Crea el borde y base con ASCII
 			}
-			else if(pos[y * ancho + x] != 'x') {
+			else if(pos[y * ancho + x] != 'x') {//Si tablero es distinto de x poner puntos
 				pos[y * ancho + x]='.';
 			}
 		}
-		pos[y*ancho + ancho-1]='\n';
+		pos[y*ancho + ancho-1]='\n';//Poner termino a la matriz de caracteres mediante salto de linea
 	}
 }
 
@@ -122,19 +136,9 @@ void poner(unsigned char pos[ancho*alto],int pi[17]){ //Guarda la pieza en el ta
 void guardar(unsigned char pos[ancho * alto],int pi[17]){ //Junta las piezas que hay en el tablero con la que cayo o el piso y cambia el simbolo para diferenciar las que ya cayeron
 	for (int i=0; i<16; i++){
 		if(pos[pi[i]]=='x'){
-			pos[pi[i]]=254;
+			pos[pi[i]]=254; //Dibuja un cuadrado en el tablero pos en la posicion pi
 		}
 	}
-}
-
-int chequear(int actualx,int actualy,int ti,int rotation,char tets[17],unsigned char pos[ancho*alto], int pi[17]){
-	crear_pieza(actualx,actualy,ti,rotation, pi, tets);
-	for(int i=0; i<16; i++){
-		if(tets[i]!='.' && pos[pi[i]]!='.'){
-			return 0;
-		}
-	}
-	return 1;
 }
 
 void lineallena(int actualy,unsigned char pos[ancho*alto], int nivel, int puntaje){
@@ -143,7 +147,7 @@ void lineallena(int actualy,unsigned char pos[ancho*alto], int nivel, int puntaj
 		if((actualy+y) < (alto-1)){
 			int bandera=1;
 			for(int x=1; x<ancho-2; x++){
-				bandera &=(pos[(actualy+y)*ancho + x]!='.');
+				bandera = bandera & (pos[(actualy+y)*ancho + x]!='.');
 			}
 			if(bandera){
 				for(int x=1; x<ancho-2; x++){
@@ -312,7 +316,7 @@ int main() {
 					proxima_pieza(aux);
 					colorrojo();
 					printf("\nPUNTOS: %d",puntaje);
-					Sleep(3000);
+					Sleep(1500);
 					printf("\n");
 					colorbase();
 					//aqui no va puntaje+10
@@ -337,21 +341,21 @@ int main() {
 								{
 									rotacion=1;
 								}
-								if(!chequear(actualx,actualy,ti,rotacion,tets,pos, pi))
+								if(!chequear(actualx,actualy,ti,rotacion,tets,pos, pi, puntaje))
 								{
 									rotacion--;
 								}
 							}
 							else if(tecla==75){
 								actualx--;
-								if(!chequear(actualx,actualy,ti,rotacion,tets,pos, pi))
+								if(!chequear(actualx,actualy,ti,rotacion,tets,pos, pi, puntaje))
 								{
 									actualx++;
 								}
 							}
 							else if(tecla==77){
 								actualx++;
-								if(!chequear(actualx,actualy,ti,rotacion,tets,pos, pi))
+								if(!chequear(actualx,actualy,ti,rotacion,tets,pos, pi, puntaje))
 								{
 									actualx--;
 								}
@@ -373,35 +377,30 @@ int main() {
 									system("cls");
 									printf("%s",pos);
 									poner(pos, pi);
-									//aqui no va puntaje
 									}
 									}while(clock() < (reloj + velocidad_actual));
-									if(chequear(actualx,actualy+1,ti,rotacion,tets, pos, pi))
+									if(chequear(actualx,actualy+1,ti,rotacion,tets, pos, pi, puntaje))
 									{
 										actualy++;
 										}
 										else{
 											crear_pieza(actualx,actualy,ti,rotacion,pi,tets);
-											finjuego=chequear(actualx,actualy,ti,rotacion,tets,pos, pi);
+											finjuego=chequear(actualx,actualy,ti,rotacion,tets,pos, pi, puntaje);
 											copiar_pieza(tets,pi,pos);
 											guardar(pos,pi);
 											system("cls");
 											printf("%s",pos);
-											//aqui tampoco va puntaje+10
 											lineallena(actualy, pos, nivel, puntaje);
 											break;
-											//aqui tampoco va puntaje
 											}
 											crear_pieza(actualx,actualy,ti,rotacion,pi,tets);
 											copiar_pieza(tets,pi,pos);
 											system("cls");
 											printf("%s",pos);
 											poner(pos,pi);
-											//aqui no va puntaje+10
 											}
 											puntaje +=1; //Por cada pieza que toca el fondo del tablero o a otra pieza
 											}
-											//system("cls");
 											coloramarillo();
 											printf("\n          Se termino el juego F");
 											Sleep(3000);
@@ -418,21 +417,22 @@ int main() {
 
  			case 2: //Los creditos
 			 system("cls");
-			 printf("------------------------------------------------------\n");
-             printf("#####  #####  #####  ####   #####  #####  #####  #####\n");
-             printf("#      #   #  #      #   #    #      #    #   #  #    \n");
-             printf("#      #####  #####  #   #    #      #    #   #  #####\n");
-             printf("#      #   #  #      #   #    #      #    #   #      #\n");
-             printf("#####  #   #  #####  ####   #####    #    #####  #####\n");
-             printf("------------------------------------------------------\n");
-             printf("----Proyecto Final de la asignatura Programacion I----\n");
-             printf("-------------Videojuego realizado en lenguaje C-------\n");
+			 printf("-------------------------------------------------------\n");
+             printf("#####  #####  #####  ####   #####  #####  #####  ##### \n");
+             printf("#      #   #  #      #   #    #      #    #   #  #     \n");
+             printf("#      #####  #####  #   #    #      #    #   #  ##### \n");
+             printf("#      #   #  #      #   #    #      #    #   #      # \n");
+             printf("#####  #   #  #####  ####   #####    #    #####  ##### \n");
+             printf("-------------------------------------------------------\n");
+             printf("----Proyecto Final de la asignatura Programacion I-----\n");
+             printf("-----------Videojuego realizado en lenguaje C----------\n");
              printf("---Autores:Vicente Tuki-Vicente Rodriguez-Jose Toledo--\n");
 			 printf("------------------Agradecimientos a:-------------------\n");
 			 printf("----------Profesor: Roberto Javier Asin Acha.----------\n");
 			 printf("----------Ayudante: Fabian Cid.------------------------\n");
 			 printf("------que nos fue de gran ayuda y nos facilito---------\n");
-			 printf("---------en la realizacion del proyecto Tetris.-------\n");
+			 printf("---------en la realizacion del proyecto Tetris.--------\n");
+			 printf("---------------Marzo-Agosto 2020.----------------------\n");
 			 Sleep(10000);
 			 system("cls");
 		}
